@@ -1,0 +1,70 @@
+{
+  "name": "vue-vite-h5",
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": "LZHD",
+  "description": "Developing with Vue 3 and Typescript in Vite.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LZHD/vue-vite-h5"
+  },
+  "bugs": {
+    "url": "https://github.com/LZHD/vue-vite-h5/issues"
+  },
+  "homepage": "https://github.com/LZHD/vue-vite-h5#readme",
+  "scripts": {
+    "dev": "vite",
+    "start": "npm run dev",
+    "build": "vue-tsc --noEmit && vite build",
+    "serve": "vite preview",
+    "lint": "eslint --ext .js,.jsx,.vue,.ts,.tsx src",
+    "generate": "plop"
+  },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "dayjs": "^1.10.6",
+    "vant": "^3.1.5",
+    "vue": "^3.1.5",
+    "vue-router": "^4.0.10",
+    "vuex": "^4.0.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.14.6",
+    "@babel/preset-env": "^7.14.7",
+    "@types/node": "^15.12.5",
+    "@typescript-eslint/eslint-plugin": "^4.28.5",
+    "@typescript-eslint/parser": "^4.28.5",
+    "@vitejs/plugin-vue": "^1.3.0",
+    "@vitejs/plugin-vue-jsx": "^1.1.7",
+    "@vue/babel-plugin-jsx": "^1.0.6",
+    "@vue/compiler-sfc": "^3.1.5",
+    "@vue/eslint-config-prettier": "^6.0.0",
+    "@vue/eslint-config-typescript": "^7.0.0",
+    "autoprefixer": "^10.3.1",
+    "babel-plugin-dynamic-import-node": "^2.3.3",
+    "eslint": "^7.32.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "eslint-plugin-vue": "^7.15.0",
+    "lint-staged": "^11.0.0",
+    "plop": "^2.7.4",
+    "postcss": "^8.3.6",
+    "postcss-pxtorem": "^6.0.0",
+    "prettier": "^2.3.2",
+    "sass": "^1.37.0",
+    "typescript": "^4.3.5",
+    "vite": "^2.4.4",
+    "vite-plugin-style-import": "^1.0.1",
+    "vue-eslint-parser": "^7.10.0",
+    "vue-tsc": "^0.2.2",
+    "yorkie": "^2.0.0"
+  },
+  "gitHooks": {
+    "pre-commit": "lint-staged"
+  },
+  "lint-staged": {
+    "*.{js,jsx,vue,ts,tsx}": [
+      "npm run lint",
+      "git add"
+    ]
+  }
+}
