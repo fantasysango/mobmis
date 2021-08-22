@@ -10,6 +10,13 @@ function resolve(dir: string) {
 // https://vitejs.dev/config/
 // https://github.com/vitejs/vite/issues/1930 .env
 export default defineConfig({
+  css: {
+    preprocessorOptions: {
+      scss: {
+        additionalData: `@import '@/styles/vars';`
+      }
+    }
+  },
   plugins: [
     vue(),
     styleImport({

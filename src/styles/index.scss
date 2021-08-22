@@ -1,8 +1,22 @@
+html {
+  font-family: 'Microsoft YaHei', Arial, sans-serif;
+  box-sizing: border-box;
+}
+
+ul, p, h1, h2, h3, h4, h5 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+  font-size: $fsNormal;
+  line-height: 1.4;
+}
+
+.ut-text-overflow {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }

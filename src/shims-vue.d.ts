@@ -9,6 +9,5 @@ declare module '*.vue' {
 declare module '@vue/runtime-core' {
   export interface ComponentCustomProperties {
     $dayjs: dayjs.Dayjs,
-    $toast: any,
   }
 }
