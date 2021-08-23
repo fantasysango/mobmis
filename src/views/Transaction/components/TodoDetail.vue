@@ -1,6 +1,6 @@
 <template>
   <div class="TodoDetail-container">
-    <van-nav-bar left-arrow @click-left="onClickLeft" fixed>
+    <van-nav-bar left-arrow @click-left="onClickLeft" :fixed="true" :placeholder="true">
       <template #title>详情</template>
     </van-nav-bar>
     <div class="my-detail-cont">
@@ -52,11 +52,18 @@
     </div>
     <div class="my-footer">
       <van-row class="my-foot-btngroup" justify="space-between">
-        <van-button type="success" size="small">发送</van-button>
+        <van-button type="success" size="small" @click="onSend">发送</van-button>
         <van-button type="danger" size="small">回退</van-button>
         <van-button type="primary" size="small">转发</van-button>
       </van-row>
     </div>
+    <van-popup
+      v-model:show="modalVisible"
+      position="bottom"
+      :style="{ width: '100%', height: '100%' }"
+    >
+      <TodoDetailValidate @toggleModal="toggleModal" />
+    </van-popup>
   </div>
 </template>
 
@@ -64,14 +71,15 @@
 import { ref, defineComponent, onMounted } from 'vue';
 import { $toast } from '@/utils';
 import { xhrGetTodoDetail } from '@/api';
+import TodoDetailValidate from './TodoDetailValidate.vue'
 
 export default defineComponent({
   name: 'TodoDetail',
+  components: {
+    TodoDetailValidate,
+  },
   setup(props: any, { emit }) {
-    const onClickLeft = () => {
-      $toast('返回');
-      emit('toggleDetail', false);
-    };
+    const activeNames = ref(['1', '2']);
     const baseList = ref([
       {
         title: '表单编号',
@@ -115,8 +123,20 @@ export default defineComponent({
         key: 'code10'
       }
     ]);
-    const attachList = ref([] as any);
+    const attachList = ref([] as any[]);
     const historyList = ref([] as any[]);
+    const modalVisible = ref(false);
+    const onClickLeft = (e = null) => {
+      $toast('返回');
+      emit('toggleDetail', false);
+    };
+    const toggleModal = (v = !modalVisible.value) => {
+      modalVisible.value = v
+    }
+    const onSend = (e = null) => {
+      toggleModal(true)
+      console.log('发送-----')
+    }
     onMounted(() => {
       xhrGetTodoDetail({}).then(res => {
         if (res.code > 0) {
@@ -178,13 +198,15 @@ export default defineComponent({
         }
       });
     });
-    const activeNames = ref(['1', '2']);
     return {
+      activeNames,
       baseList,
       attachList,
       historyList,
+      modalVisible,
       onClickLeft,
-      activeNames
+      toggleModal,
+      onSend,
     };
   }
 });
@@ -193,7 +215,7 @@ export default defineComponent({
 <style scoped lang="scss">
 .TodoDetail-container {
   height: 100%;
-  padding-top: var(--van-nav-bar-height);
+  // padding-top: var(--van-nav-bar-height);
   padding-bottom: 56px;
   overflow: auto;
   box-sizing: border-box;

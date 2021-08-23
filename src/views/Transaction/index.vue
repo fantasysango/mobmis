@@ -1,6 +1,6 @@
 <template>
   <div class="Transaction-container">
-    <van-nav-bar class="TheHeader-container" :fixed="true">
+    <van-nav-bar class="TheHeader-container" :fixed="true" :placeholder="true">
       <template #title>待办列表</template>
     </van-nav-bar>
     <TodoTab @toggleDetail="toggleDetail" />
@@ -39,7 +39,7 @@ export default defineComponent({
 
 <style scoped lang="scss">
 .Transaction-container {
-  padding-top: var(--van-nav-bar-height);
+  // padding-top: var(--van-nav-bar-height);
   ::v-deep .van-nav-bar--fixed {
     position: fixed;
   }
