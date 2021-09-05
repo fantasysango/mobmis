@@ -1,16 +1,22 @@
 <template>
   <div class="TodoDetail-container">
-    <van-nav-bar left-arrow @click-left="onClickLeft" :fixed="true" :placeholder="true">
+    <van-nav-bar
+      left-arrow
+      @click-left="onClickLeft"
+      :fixed="true"
+      :placeholder="true"
+    >
       <template #title>详情</template>
     </van-nav-bar>
     <div class="my-detail-cont">
       <div class="my-cont-base">
         <van-row
+          class="my-base-row"
           v-for="(baseItem, baseIndex) in baseList"
           :key="baseIndex"
           align="center"
         >
-          <van-col span="8" class="my-item-title van-ellipsis">{{
+          <van-col span="8" class="my-base-item">{{
             baseItem.title
           }}</van-col>
           <van-col span="16" class="my-item-cont">{{ baseItem.value }}</van-col>
@@ -38,7 +44,7 @@
             v-for="(historyItem, historyIndex) in historyList"
             :key="historyIndex"
           >
-            <van-col span="8" class="my-item-title">{{
+            <van-col span="8" class="my-base-item">{{
               historyItem.stepTitle
             }}</van-col>
             <van-col span="16" class="my-item-cont">
@@ -52,7 +58,9 @@
     </div>
     <div class="my-footer">
       <van-row class="my-foot-btngroup" justify="space-between">
-        <van-button type="success" size="small" @click="onSend">发送</van-button>
+        <van-button type="success" size="small" @click="onSend"
+          >发送</van-button
+        >
         <van-button type="danger" size="small">回退</van-button>
         <van-button type="primary" size="small">转发</van-button>
       </van-row>
@@ -71,130 +79,74 @@
 import { ref, defineComponent, onMounted } from 'vue';
 import { $toast } from '@/utils';
 import { xhrGetTodoDetail } from '@/api';
-import TodoDetailValidate from './TodoDetailValidate.vue'
+import TodoDetailValidate from './TodoDetailValidate.vue';
+import { ITodoItem } from '@/types';
+import { TODO_DETAIL_COLUMNS } from '@/constants';
 
 export default defineComponent({
   name: 'TodoDetail',
   components: {
-    TodoDetailValidate,
+    TodoDetailValidate
+  },
+  props: {
+    data: {
+      type: Object,
+      required: true,
+    },
+    test: {
+      type: Number,
+    }
   },
   setup(props: any, { emit }) {
     const activeNames = ref(['1', '2']);
-    const baseList = ref([
-      {
-        title: '表单编号',
-        key: 'code1',
-        value: ''
-      },
-      {
-        title: '常维项目',
-        key: 'code2'
-      },
-      {
-        title: '项目名称',
-        key: 'code3'
-      },
-      {
-        title: '承包商',
-        key: 'code4'
-      },
-      {
-        title: '检修属性',
-        key: 'code5'
-      },
-      {
-        title: '专业',
-        key: 'code6'
-      },
-      {
-        title: '施工管理部门',
-        key: 'code7'
-      },
-      {
-        title: '合同开工日期',
-        key: 'code8'
-      },
-      {
-        title: '合同竣工日期',
-        key: 'code9'
-      },
-      {
-        title: '自检质量等级',
-        key: 'code10'
-      }
-    ]);
+    const baseList = ref(
+      (o =>
+        Object.keys(o).map(k => ({
+          key: k,
+          title: o[k],
+          value: ''
+        })))(TODO_DETAIL_COLUMNS.formData)
+    );
     const attachList = ref([] as any[]);
     const historyList = ref([] as any[]);
     const modalVisible = ref(false);
     const onClickLeft = (e = null) => {
-      $toast('返回');
-      emit('toggleDetail', false);
+      emit('close');
     };
     const toggleModal = (v = !modalVisible.value) => {
-      modalVisible.value = v
-    }
+      modalVisible.value = v;
+    };
     const onSend = (e = null) => {
-      toggleModal(true)
-      console.log('发送-----')
-    }
+      toggleModal(true);
+      console.log('发送-----');
+    };
     onMounted(() => {
-      xhrGetTodoDetail({}).then(res => {
-        if (res.code > 0) {
+      const { WorkFlowCode } = (props.data || {}) as ITodoItem;
+      xhrGetTodoDetail({
+        code: WorkFlowCode
+      }).then(res => {
+        if (res.flag) {
+          const { formData, ftpAttachment, suggestions } = res.data;
           // 基础信息
-          const mockBaseObj: any = {
-            code1: 'WGYS-001',
-            code2: '常维项目阶段性验收'
-          };
-          baseList.value.forEach(d => {
-            d.value = mockBaseObj[d.key] || '';
-          });
-          //--------
+          if (formData)
+            baseList.value.forEach(d => {
+              d.value = formData[d.key] || '';
+            });
           // 附件
-          attachList.value = [
-            {
-              fileName: '启动命令.txt',
-              status: '安全'
-            }
-          ];
+          if (ftpAttachment)
+            attachList.value = ftpAttachment.map(d => ({
+              fileName: d.fileFullName,
+              status: '安全',
+              url: d.fileAddress
+            }));
           // 审批历史
-          historyList.value = [
-            {
+          if (suggestions)
+            historyList.value = suggestions.map(d => ({
               stepTitle: '档案部门验收',
-              operator: '王晓丽',
-              operateDate: '2021-08-19',
-              result: '同意'
-            },
-            {
-              stepTitle: '运行部门验收',
-              operator: '刘小天',
-              operateDate: '2021-08-18',
-              result: '同意'
-            },
-            {
-              stepTitle: '运行部门验收',
-              operator: '刘小天',
-              operateDate: '2021-08-18',
-              result: '同意'
-            },
-            {
-              stepTitle: '运行部门验收',
-              operator: '刘小天',
-              operateDate: '2021-08-18',
-              result: '同意'
-            },
-            {
-              stepTitle: '运行部门验收',
-              operator: '刘小天',
-              operateDate: '2021-08-18',
-              result: '同意'
-            },
-            {
-              stepTitle: '运行部门验收',
-              operator: '刘小天',
-              operateDate: '2021-08-18',
-              result: '同意'
-            }
-          ];
+              operator: d.uName,
+              operateDate: d.suggestionTime,
+              result: d.suggestionContent
+            }));
         }
       });
     });
@@ -206,7 +158,7 @@ export default defineComponent({
       modalVisible,
       onClickLeft,
       toggleModal,
-      onSend,
+      onSend
     };
   }
 });
@@ -229,8 +181,12 @@ export default defineComponent({
   background-color: var(--van-collapse-item-content-backgr);
 }
 
+.my-base-row {
+  margin: .5em 0;
+}
+
 .my-attach-filename,
-.my-item-title {
+.my-base-item {
   color: var(--van-black);
 }
 

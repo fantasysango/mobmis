@@ -3,13 +3,13 @@
     <van-nav-bar class="TheHeader-container" :fixed="true" :placeholder="true">
       <template #title>待办列表</template>
     </van-nav-bar>
-    <TodoTab @toggleDetail="toggleDetail" />
+    <TodoTab @enterDetail="enterDetail" />
     <van-popup
       v-model:show="modalVisible"
       position="right"
       :style="{ width: '100%', height: '100%' }"
     >
-      <TodoDetail @toggleDetail="toggleDetail" />
+      <TodoDetail :data="editingData" :test="1" @close="toggleDetail(false)" />
     </van-popup>
     <router-view />
   </div>
@@ -29,10 +29,21 @@ export default defineComponent({
   setup() {
     const activeTab = ref(0);
     const modalVisible = ref(false);
+    const editingData = ref(null);
     const toggleDetail = (v = !modalVisible.value) => {
       modalVisible.value = v;
     };
-    return { activeTab, modalVisible, toggleDetail };
+    const enterDetail = item => {
+      editingData.value = item;
+      toggleDetail(true);
+    };
+    return {
+      activeTab,
+      modalVisible,
+      editingData,
+      toggleDetail,
+      enterDetail
+    };
   }
 });
 </script>

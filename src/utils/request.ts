@@ -24,8 +24,8 @@ const errorHandler = (error: any) => {
 // response interceptor
 instance.interceptors.response.use((response: AxiosResponse) => {
     const res = response.data
-    if (res.code <= 0 && res.message) {
-        Toast(res.message)
+    if (!res.flag && res.msg) {
+        Toast(res.msg)
     }
     return res
 }, errorHandler)

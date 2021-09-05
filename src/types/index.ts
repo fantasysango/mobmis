@@ -1,8 +1,10 @@
 export interface ITodoItem {
-    id: string
-    title: string
-    owner: string
-    name: string
-    node: string
-    time: number
+    ID: string
+    WorkFlowCode: string
+    WorkFlowName: string
+    SendUser: string
+    FormLable: string
+    NowActivity: string
+    SendDateTime: number
+    //...
 }
