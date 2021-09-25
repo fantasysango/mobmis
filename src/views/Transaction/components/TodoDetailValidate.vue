@@ -13,8 +13,10 @@
     <div class="my-detail-cont">
       <div class="my-cont-base">
         <van-row align="center">
-          <van-col span="16">{{ approvers.join('、') }}</van-col>
-          <van-col span="8">设置审批对象</van-col>
+          <van-col span="16" class="my-col-pad">{{ approverNames }}</van-col>
+          <van-col span="8" @click="toggleModal(true)"
+            ><b>配置审批对象</b></van-col
+          >
         </van-row>
       </div>
       <van-collapse v-model="activeNames">
@@ -25,7 +27,7 @@
             autosize
             type="textarea"
             placeholder="请填写审批意见"
-            style="padding: 0;"
+            style="padding: 0"
           />
         </van-collapse-item>
         <van-collapse-item title="内容合规点" name="2">
@@ -35,7 +37,7 @@
             :key="index"
           >
             <van-row align="center">
-              <van-col span="16">{{index + 1}}、{{ item.question }}</van-col>
+              <van-col span="16" class="my-col-pad">{{ index + 1 }}、{{ item.question }}</van-col>
               <van-col span="8">
                 <van-radio-group v-model="item.answer" direction="horizontal">
                   <van-radio :name="1">是</van-radio>
@@ -55,19 +57,53 @@
         </van-collapse-item>
       </van-collapse>
     </div>
+    <van-popup
+      v-model:show="modalVisible"
+      position="bottom"
+      :style="{ width: '100%', height: '100%' }"
+    >
+      <PeopleList
+        :list="peopleList"
+        :value="approvers"
+        :visible="modalVisible"
+        idKey="number"
+        @change="handlePeopleChange"
+        @close="toggleModal(false)"
+      />
+    </van-popup>
   </div>
 </template>
 
 <script lang="ts">
-import { ref, defineComponent, onMounted } from 'vue';
+import { ref, watch, toRefs, defineComponent, onMounted, computed } from 'vue';
 import { $toast } from '@/utils';
-import { xhrGetTodoDetail } from '@/api';
+import PeopleList from './PeopleList.vue';
 
 export default defineComponent({
   name: 'TodoDetailValidate',
-  setup(props: any, { emit }) {
+  components: {
+    PeopleList
+  },
+  props: {
+    data: {
+      type: Object,
+      default: null
+    },
+    visible: {
+      type: Boolean,
+      default: false
+    }
+  },
+  setup(props, { emit }) {
+    const { visible: propVisible } = toRefs(props);
     const activeNames = ref(['1', '2']);
-    const approvers = ref(['张三', '李四']);
+    const approvers = ref<string[]>([]);
+    const peopleList = ref<{ name: string; number: number }[]>([]);
+    const modalVisible = ref(false);
+    const toggleModal = (v = !modalVisible.value) => {
+      console.log('toggleModal PeopleList!');
+      modalVisible.value = v;
+    };
     const comments = ref('');
     const questions = ref([
       {
@@ -81,23 +117,53 @@ export default defineComponent({
         note: ''
       }
     ]);
-    const doClose = () => emit('toggleModal', false);
-    const onConfirm = (e = null) => {
-      doClose();
-    };
     const onCancel = (e = null) => {
-      doClose();
+      emit('close');
     };
+    const onConfirm = (e = null) => {
+      onCancel();
+    };
+    const handlePeopleChange = v => {
+      approvers.value = v;
+      toggleModal(false);
+    };
+    const nameMap = computed(() => {
+      const map = {};
+      peopleList.value.forEach(d => (map[d.number] = d.name));
+      return map;
+    });
+    const approverNames = computed(() =>
+      approvers.value.map(d => nameMap.value[d]).join('、')
+    );
+
+    const init = () => {
+      const data = props.data || {};
+      peopleList.value = data.peopleList || [];
+    };
+    const reset = () => {
+      peopleList.value = [];
+      approvers.value = [];
+      comments.value = '';
+    };
+    watch(propVisible, v => {
+      if (v) init();
+      else reset();
+    });
     onMounted(() => {
-      // 
+      init();
     });
     return {
       activeNames,
       approvers,
+      approverNames,
       comments,
       questions,
+      modalVisible,
+      peopleList,
+      toggleModal,
       onConfirm,
-      onCancel
+      onCancel,
+      handlePeopleChange
     };
   }
 });
@@ -131,5 +197,9 @@ export default defineComponent({
 
 .my-item-title {
   color: var(--van-black);
+}
+
+.my-col-pad {
+  padding-right: .5em;
 }
 </style>

@@ -1,8 +1,8 @@
-import { Toast } from 'vant'
+import { Toast, Dialog } from 'vant'
 
-export function $toast(...args: any[]) {
-    return Toast(...args)
-}
+export const $toast = Toast
+
+export const $dialog = Dialog
 
 export function closest(el: any, selector: any) {
     const matchesSelector = el.matches || el.webkitMatchesSelector || el.mozMatchesSelector || el.msMatchesSelector;

@@ -7,9 +7,10 @@
     <van-popup
       v-model:show="modalVisible"
       position="right"
+      :safe-area-inset-bottom="true"
       :style="{ width: '100%', height: '100%' }"
     >
-      <TodoDetail :data="editingData" :test="1" @close="toggleDetail(false)" />
+      <TodoDetail :data="editingData" :visible="modalVisible" @close="toggleDetail(false)" />
     </van-popup>
     <router-view />
   </div>
@@ -29,7 +30,7 @@ export default defineComponent({
   setup() {
     const activeTab = ref(0);
     const modalVisible = ref(false);
-    const editingData = ref(null);
+    const editingData = ref<any>(null);
     const toggleDetail = (v = !modalVisible.value) => {
       modalVisible.value = v;
     };

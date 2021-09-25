@@ -1,4 +1,3 @@
-
 // import { Button, NavBar } from 'vant';
 import Vant, { Toast } from 'vant';
 import 'vant/lib/index.css';

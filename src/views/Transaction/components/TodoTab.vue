@@ -26,7 +26,7 @@
         v-for="(item, index) in items"
         :item="item"
         :data-index="index"
-        :key="item.ID"
+        :key="item.id"
       />
     </div>
     <van-popup
@@ -40,6 +40,7 @@
         title="选择年月日"
         :min-date="minDate"
         :max-date="maxDate"
+        :visible="pickerVisible"
         @confirm="onPickerConfirm"
         @cancel="pickerVisible = false"
       />
@@ -48,12 +49,13 @@
 </template>
 
 <script lang="ts">
-import { ref, computed, defineComponent, onMounted } from 'vue';
+import { ref, defineComponent, onMounted } from 'vue';
 import { $toast, closest } from '@/utils';
 import { ITodoItem } from '@/types';
 import { xhrGetTodoList } from '@/api';
 import TodoItem from './TodoItem.vue';
 import dayjs from 'dayjs';
+import store from '@/store';
 
 export default defineComponent({
   name: 'TodoTab',
@@ -68,19 +70,23 @@ export default defineComponent({
 
     const pickerVisible = ref(false);
     const items = ref([] as ITodoItem[]);
+    const setLoading = v => store.commit('setLoading', v);
     const fetchData = () => {
+      setLoading(true);
       const [start, end] = dateRange.value;
       xhrGetTodoList({
         empCode: 10101887,
         pageIndex: 1,
         pageSize: 1000,
         start,
-        end,
-      }).then(res => {
-        if (res.flag) {
-          items.value = (res.data.Data || []) as any;
-        }
-      });
+        end
+      })
+        .then(res => {
+          if (res.flag) {
+            items.value = (res.data.listData || []) as ITodoItem[];
+          }
+        })
+        .finally(() => setLoading(false));
     };
     const handleClick = (e: any) => {
       const el: any = closest(e.target, '[data-index]');
@@ -94,10 +100,11 @@ export default defineComponent({
     const onPickerConfirm = (v: Date) => {
       dateRange.value[activeIdx] = v;
       pickerVisible.value = false;
+      fetchData();
     };
     const doPickDate = (idx: number) => {
       activeIdx = idx;
-      currentDate.value = dateRange[idx];
+      currentDate.value = dateRange.value[idx];
       pickerVisible.value = true;
     };
     onMounted(() => {

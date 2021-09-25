@@ -2,32 +2,32 @@
   <div class="TodoItem-container">
     <van-row align="center">
       <van-col span="20"
-        ><h3 class="ut-text-overflow">{{ item.WorkFlowName }}</h3></van-col
+        ><h3 class="ut-text-overflow">{{ item.workFlowName }}</h3></van-col
       >
       <van-col span="4" style="text-align: right">
         <van-button size="small">发送</van-button>
       </van-col>
     </van-row>
-    <p class="my-desc">{{ item.SendUser }}</p>
+    <p class="my-desc">{{ item.sendUser }}</p>
     <van-row>
       <van-col span="8">单据名称</van-col>
-      <van-col>{{ item.FormLable }}</van-col>
+      <van-col>{{ item.formLable }}</van-col>
     </van-row>
     <van-row>
       <van-col span="8">当前节点</van-col>
-      <van-col>{{ item.NowActivity }}</van-col>
+      <van-col>{{ item.nowActivity }}</van-col>
     </van-row>
     <van-row>
       <van-col span="8">发送时间</van-col>
-      <van-col>{{ formatDate(item.SendDateTime) }}</van-col>
+      <van-col>{{ formatDate(item.sendDateTime) }}</van-col>
     </van-row>
   </div>
 </template>
 
 <script lang="ts">
-import { ref, defineComponent, toRefs } from 'vue';
+import { defineComponent } from 'vue';
 import dayjs from 'dayjs';
-import { ITodoItem } from '@/types';
+// import { ITodoItem } from '@/types';
 
 export default defineComponent({
   name: 'TodoItem',

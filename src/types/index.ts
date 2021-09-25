@@ -1,10 +1,13 @@
 export interface ITodoItem {
-    ID: string
-    WorkFlowCode: string
-    WorkFlowName: string
-    SendUser: string
-    FormLable: string
-    NowActivity: string
-    SendDateTime: number
-    //...
+    id: string
+    workFlowKey: string
+    workFlowCode: string
+    workFlowName: string
+    formLable: string
+    fromType: string
+    nowActivity: string
+    sendUser: string
+    sendDateTime: number
+    kind: string
+    subkind: string
 }

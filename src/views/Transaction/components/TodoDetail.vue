@@ -16,9 +16,7 @@
           :key="baseIndex"
           align="center"
         >
-          <van-col span="8" class="my-base-item">{{
-            baseItem.title
-          }}</van-col>
+          <van-col span="8" class="my-base-item">{{ baseItem.title }}</van-col>
           <van-col span="16" class="my-item-cont">{{ baseItem.value }}</van-col>
         </van-row>
       </div>
@@ -29,6 +27,8 @@
             :key="attchIndex"
             class="my-attach-item"
             align="center"
+            :clickable="true"
+            @click="() => onDownload(attachItem.url)"
           >
             <van-col class="my-attch-iconwrap">
               <van-icon name="description" color="#1989fa" />
@@ -70,18 +70,20 @@
       position="bottom"
       :style="{ width: '100%', height: '100%' }"
     >
-      <TodoDetailValidate @toggleModal="toggleModal" />
+      <TodoDetailValidate :data="validateInfo" :visible="modalVisible" @close="toggleModal(false)" />
     </van-popup>
   </div>
 </template>
 
 <script lang="ts">
-import { ref, defineComponent, onMounted } from 'vue';
-import { $toast } from '@/utils';
+import { ref, watch, toRefs, defineComponent, onMounted } from 'vue';
+import { $toast, $dialog } from '@/utils';
 import { xhrGetTodoDetail } from '@/api';
 import TodoDetailValidate from './TodoDetailValidate.vue';
 import { ITodoItem } from '@/types';
 import { TODO_DETAIL_COLUMNS } from '@/constants';
+import store from '@/store';
+import { xhGetValidateInfo } from '@/api';
 
 export default defineComponent({
   name: 'TodoDetail',
@@ -91,14 +93,15 @@ export default defineComponent({
   props: {
     data: {
       type: Object,
-      required: true,
+      default: null
     },
-    test: {
-      type: Number,
+    visible: {
+      type: Boolean,
+      required: true
     }
   },
   setup(props: any, { emit }) {
-    const activeNames = ref(['1', '2']);
+    const { visible: propVisible } = toRefs(props);
     const baseList = ref(
       (o =>
         Object.keys(o).map(k => ({
@@ -107,31 +110,69 @@ export default defineComponent({
           value: ''
         })))(TODO_DETAIL_COLUMNS.formData)
     );
+    const activeNames = ref(['1', '2']);
     const attachList = ref([] as any[]);
     const historyList = ref([] as any[]);
     const modalVisible = ref(false);
+    const validateInfo = ref<any>(null);
+    let judgementText = '';
+    const setLoading = v => store.commit('setLoading', v);
     const onClickLeft = (e = null) => {
       emit('close');
     };
     const toggleModal = (v = !modalVisible.value) => {
       modalVisible.value = v;
     };
-    const onSend = (e = null) => {
-      toggleModal(true);
-      console.log('发送-----');
+    const onSend = async (e = null) => {
+      const { workFlowKey, workFlowCode, workFlowName } = (props.data ||
+        {}) as ITodoItem;
+      let judgmentCondition = 'false';
+      if (judgementText) {
+        await $dialog
+          .confirm({
+            message: judgementText
+          })
+          .then(() => (judgmentCondition = 'true'))
+          .catch(() => (judgmentCondition = 'false'));
+      }
+      setLoading(true)
+      xhGetValidateInfo({
+        UNAME: workFlowName,
+        RTKey: workFlowKey,
+        WorkFlowCode: workFlowCode,
+        JudgmentCondition: judgmentCondition
+      })
+        .then(res => {
+          if (res.flag) {
+            validateInfo.value = (res.data || [])[0];
+            console.log('validateInfo.value', validateInfo.value)
+            toggleModal(true);
+          }
+        })
+        .finally(() => setLoading(false));
     };
-    onMounted(() => {
-      const { WorkFlowCode } = (props.data || {}) as ITodoItem;
+    const onDownload = url => {
+      if (!url) return;
+      const el = document.createElement('a');
+      el.href = url;
+      el.target = '_blank';
+      el.click();
+    };
+    const init = () => {
+      console.log('===== init =====');
+      const { workFlowCode } = (props.data || {}) as ITodoItem;
       xhrGetTodoDetail({
-        code: WorkFlowCode
+        code: workFlowCode
       }).then(res => {
         if (res.flag) {
           const { formData, ftpAttachment, suggestions } = res.data;
           // 基础信息
-          if (formData)
+          if (formData) {
             baseList.value.forEach(d => {
               d.value = formData[d.key] || '';
             });
+            judgementText = formData.judgementText
+          }
           // 附件
           if (ftpAttachment)
             attachList.value = ftpAttachment.map(d => ({
@@ -149,6 +190,20 @@ export default defineComponent({
             }));
         }
       });
+    };
+    const reset = () => {
+      console.log('===== reset =====');
+      judgementText = '';
+      attachList.value = [];
+      historyList.value = [];
+      validateInfo.value = null;
+    };
+    watch(propVisible, v => {
+      if (v) init();
+      else reset();
+    });
+    onMounted(() => {
+      init();
     });
     return {
       activeNames,
@@ -156,9 +211,11 @@ export default defineComponent({
       attachList,
       historyList,
       modalVisible,
+      validateInfo,
       onClickLeft,
       toggleModal,
-      onSend
+      onSend,
+      onDownload
     };
   }
 });
@@ -182,7 +239,7 @@ export default defineComponent({
 }
 
 .my-base-row {
-  margin: .5em 0;
+  margin: 0.5em 0;
 }
 
 .my-attach-filename,
@@ -205,6 +262,12 @@ export default defineComponent({
 
 .my-foot-btngroup {
   padding: var(--van-collapse-item-content-padding);
+}
+
+.my-attach-item {
+  &:active {
+    background-color: var(--van-cell-active-color);
+  }
 }
 
 ::v-deep .van-collapse-item {
