@@ -202,7 +202,7 @@ export default {
         "ylwt": "无",
         "sqr": "张建军",
         "sqsj": "2020/11/10 15:41:00",
-        "judgementText": "是否XXX？"
+        "judgementText": "是否进行联合验收？"
 
       },
       "ftpAttachment": [

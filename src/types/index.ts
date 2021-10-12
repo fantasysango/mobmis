@@ -11,3 +11,5 @@ export interface ITodoItem {
     kind: string
     subkind: string
 }
+
+export type TOprType = 'send' | 'rollback' | 'transmit'

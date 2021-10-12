@@ -58,11 +58,11 @@
     </div>
     <div class="my-footer">
       <van-row class="my-foot-btngroup" justify="space-between">
-        <van-button type="success" size="small" @click="onSend"
+        <van-button type="success" size="small" @click="onSend('send')"
           >发送</van-button
         >
-        <van-button type="danger" size="small">回退</van-button>
-        <van-button type="primary" size="small">转发</van-button>
+        <van-button type="danger" size="small" @click="onSend('rollback')">回退</van-button>
+        <van-button type="primary" size="small" @click="onSend('transmit')">转发</van-button>
       </van-row>
     </div>
     <van-popup
@@ -70,7 +70,7 @@
       position="bottom"
       :style="{ width: '100%', height: '100%' }"
     >
-      <TodoDetailValidate :data="validateInfo" :visible="modalVisible" @close="toggleModal(false)" />
+      <TodoDetailValidate :oprType="activeOprType" :extraInfo="extraInfo" :data="validateInfo" :visible="modalVisible" @close="toggleModal(false)" />
     </van-popup>
   </div>
 </template>
@@ -80,10 +80,10 @@ import { ref, watch, toRefs, defineComponent, onMounted } from 'vue';
 import { $toast, $dialog } from '@/utils';
 import { xhrGetTodoDetail } from '@/api';
 import TodoDetailValidate from './TodoDetailValidate.vue';
-import { ITodoItem } from '@/types';
+import { ITodoItem, TOprType } from '@/types';
 import { TODO_DETAIL_COLUMNS } from '@/constants';
 import store from '@/store';
-import { xhGetValidateInfo } from '@/api';
+import { xhrGetValidateInfo, xhrGetTransmitValidateInfo, xhrGetRollbackValidateInfo } from '@/api';
 
 export default defineComponent({
   name: 'TodoDetail',
@@ -115,6 +115,8 @@ export default defineComponent({
     const historyList = ref([] as any[]);
     const modalVisible = ref(false);
     const validateInfo = ref<any>(null);
+    const extraInfo = ref<any>(null);
+    const activeOprType = ref<TOprType | ''>('')
     let judgementText = '';
     const setLoading = v => store.commit('setLoading', v);
     const onClickLeft = (e = null) => {
@@ -123,8 +125,8 @@ export default defineComponent({
     const toggleModal = (v = !modalVisible.value) => {
       modalVisible.value = v;
     };
-    const onSend = async (e = null) => {
-      const { workFlowKey, workFlowCode, workFlowName } = (props.data ||
+    const onSend = async (oprType: TOprType = 'send') => {
+      const { workFlowKey, workFlowCode } = (props.data ||
         {}) as ITodoItem;
       let judgmentCondition = 'false';
       if (judgementText) {
@@ -135,17 +137,25 @@ export default defineComponent({
           .then(() => (judgmentCondition = 'true'))
           .catch(() => (judgmentCondition = 'false'));
       }
+      const xhrFn = {
+        send: xhrGetValidateInfo,
+        rollback: xhrGetRollbackValidateInfo,
+        transmit: xhrGetTransmitValidateInfo,
+      }[oprType]
+      if (!xhrFn) throw new Error(`oprType值有误！`)
       setLoading(true)
-      xhGetValidateInfo({
-        UNAME: workFlowName,
-        RTKey: workFlowKey,
-        WorkFlowCode: workFlowCode,
-        JudgmentCondition: judgmentCondition
-      })
+      const params = {
+        rtKey: workFlowKey,
+        workFlowCode: workFlowCode,
+        judgmentCondition: judgmentCondition
+      }
+      xhrFn(params)
         .then(res => {
           if (res.flag) {
             validateInfo.value = (res.data || [])[0];
             console.log('validateInfo.value', validateInfo.value)
+            extraInfo.value = params
+            activeOprType.value = oprType
             toggleModal(true);
           }
         })
@@ -160,9 +170,10 @@ export default defineComponent({
     };
     const init = () => {
       console.log('===== init =====');
-      const { workFlowCode } = (props.data || {}) as ITodoItem;
+      const { workFlowCode, workFlowKey } = (props.data || {}) as ITodoItem;
       xhrGetTodoDetail({
-        code: workFlowCode
+        workFlowCode,
+        workFlowKey,
       }).then(res => {
         if (res.flag) {
           const { formData, ftpAttachment, suggestions } = res.data;
@@ -206,12 +217,14 @@ export default defineComponent({
       init();
     });
     return {
+      activeOprType,
       activeNames,
       baseList,
       attachList,
       historyList,
       modalVisible,
       validateInfo,
+      extraInfo,
       onClickLeft,
       toggleModal,
       onSend,

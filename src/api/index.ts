@@ -19,8 +19,8 @@ export function xhrGetTodoList(params: any) {
 /**
  * 单据详情
  * @param params {
-            WorkFlowCode 流程编码（本次外包完工验收申请流程编码为WBYS）
-            ID 业务单据ID（取自列表接口返回的WorkFlowKey，例如baldr_2_2166_3931_160779_2823462_1007_10101887，则单据ID为1007）)}
+            workFlowCode 流程编码（本次外包完工验收申请流程编码为WBYS）
+            workFlowKey 取自列表接口返回的WorkFlowKey，例如baldr_2_2166_3931_160779_2823462_1007_10101887
           }
  */
 export function xhrGetTodoDetail(params: any) {
@@ -35,14 +35,14 @@ export function xhrGetTodoDetail(params: any) {
 /**
  * 发送前（点击详情页面的发送按钮调用）
  * @param params {
-            UID:当前用户ID（工号）
-            UNAME:当前用户名
-            RTKey:（取自列表接口返回的WorkFlowKey）)
-            WorkFlowCode 流程编码（本次外包完工验收申请流程编码为WBYS）
-            JudgmentCondition：点击发送按钮时需先判断是否有弹出框，根据弹出框内容选择之后将选项（“true”或“false”赋值此参数，string类型） 当前外包完工验收流程有三个节点需要，1验收申请-->联合验收，2归口专责验收--专业会审3部门验收-运行验收
+            uid:当前用户ID（工号）
+            uName:当前用户名
+            rtKey:（取自列表接口返回的WorkFlowKey）)
+            workFlowCode 流程编码（本次外包完工验收申请流程编码为WBYS）
+            judgmentCondition：点击发送按钮时需先判断是否有弹出框，根据弹出框内容选择之后将选项（“true”或“false”赋值此参数，string类型） 当前外包完工验收流程有三个节点需要，1验收申请-->联合验收，2归口专责验收--专业会审3部门验收-运行验收
           }
  */
-export function xhGetValidateInfo(params: any) {
+export function xhrGetValidateInfo(params: any) {
   if (ENABLE_MOCK) return Promise.resolve(mockData.validateInfo)
   return request({
     url: '/API/WFConfig/WFSendNextBefore',
@@ -55,10 +55,74 @@ export function xhGetValidateInfo(params: any) {
  * 发送
  * @param params 
  */
-export function xhSendValidateInfo(params: any) {
+export function xhrSendValidateInfo(params: any) {
   if (ENABLE_MOCK) return Promise.resolve(mockData.sendInfo)
   return request({
     url: '/API/WFConfig/WFSendNext',
+    method: 'post',
+    data: params,
+  })
+}
+
+/**
+ * 转发前（说明：与发送前接口一致）
+ * @param params {
+            uid:当前用户ID（工号）
+            uName:当前用户名
+            rtKey:（取自列表接口返回的WorkFlowKey）)
+            workFlowCode 流程编码（本次外包完工验收申请流程编码为WBYS）
+            judgmentCondition：点击发送按钮时需先判断是否有弹出框，根据弹出框内容选择之后将选项（“true”或“false”赋值此参数，string类型） 当前外包完工验收流程有三个节点需要，1验收申请-->联合验收，2归口专责验收--专业会审3部门验收-运行验收
+          }
+ */
+export function xhrGetTransmitValidateInfo(params: any) {
+  if (ENABLE_MOCK) return Promise.resolve(mockData.validateInfo)
+  return request({
+    url: '/API/WFConfig/WFTransmitBefore',
+    method: 'get',
+    params,
+  })
+}
+
+/**
+ * 转发
+ * @param params 
+ */
+export function xhrSendTransmitValidateInfo(params: any) {
+  if (ENABLE_MOCK) return Promise.resolve(mockData.sendInfo)
+  return request({
+    url: '/API/WFConfig/WFTransmit',
+    method: 'post',
+    data: params,
+  })
+}
+
+/**
+ * 回退前（说明：参数与发送前接口一致，但返回值不一致！）
+ * @param params {
+            uid:当前用户ID（工号）
+            uName:当前用户名
+            rtKey:（取自列表接口返回的WorkFlowKey）)
+            workFlowCode 流程编码（本次外包完工验收申请流程编码为WBYS）
+            judgmentCondition：点击发送按钮时需先判断是否有弹出框，根据弹出框内容选择之后将选项（“true”或“false”赋值此参数，string类型） 当前外包完工验收流程有三个节点需要，1验收申请-->联合验收，2归口专责验收--专业会审3部门验收-运行验收
+          }
+ */
+export function xhrGetRollbackValidateInfo(params: any) {
+  if (ENABLE_MOCK) return Promise.resolve(mockData.validateInfo)
+  return request({
+    url: '/API/WFConfig/WFSendPreviousBefore',
+    method: 'get',
+    params,
+  })
+}
+
+/**
+ * 回退
+ * @param params 
+ */
+export function xhrSendRollbacktValidateInfo(params: any) {
+  if (ENABLE_MOCK) return Promise.resolve(mockData.sendInfo)
+  return request({
+    url: '/API/WFConfig/WFSendPrevious',
     method: 'post',
     data: params,
   })

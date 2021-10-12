@@ -1,9 +1,20 @@
-import axios, { AxiosError, AxiosResponse } from 'axios'
+import axios, { AxiosError, AxiosResponse, AxiosRequestConfig } from 'axios'
 import { Toast } from 'vant'
 
 const instance = axios.create({
     baseURL: '/',
     // timeout: 6000, // 请求超时时间
+})
+
+let token = ''
+
+// request interceptor
+instance.interceptors.request.use((config: AxiosRequestConfig) => {
+    config.headers = {
+        token,
+        ...config.headers,
+    }
+    return config
 })
 
 // 异常拦截处理器
@@ -24,6 +35,9 @@ const errorHandler = (error: any) => {
 // response interceptor
 instance.interceptors.response.use((response: AxiosResponse) => {
     const res = response.data
+    if (res.token) {
+        token = res.token
+    }
     if (!res.flag && res.msg) {
         Toast(res.msg)
     }

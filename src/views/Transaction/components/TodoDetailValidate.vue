@@ -37,7 +37,9 @@
             :key="index"
           >
             <van-row align="center">
-              <van-col span="16" class="my-col-pad">{{ index + 1 }}、{{ item.question }}</van-col>
+              <van-col span="16" class="my-col-pad"
+                >{{ index + 1 }}、{{ item.question }}</van-col
+              >
               <van-col span="8">
                 <van-radio-group v-model="item.answer" direction="horizontal">
                   <van-radio :name="1">是</van-radio>
@@ -77,7 +79,13 @@
 <script lang="ts">
 import { ref, watch, toRefs, defineComponent, onMounted, computed } from 'vue';
 import { $toast } from '@/utils';
+import store from '@/store';
 import PeopleList from './PeopleList.vue';
+import {
+  xhrSendValidateInfo,
+  xhrSendTransmitValidateInfo,
+  xhrSendRollbacktValidateInfo
+} from '@/api';
 
 export default defineComponent({
   name: 'TodoDetailValidate',
@@ -85,9 +93,17 @@ export default defineComponent({
     PeopleList
   },
   props: {
+    oprType: {
+      type: String,
+      required: true
+    },
     data: {
       type: Object,
-      default: null
+      required: true
+    },
+    extraInfo: {
+      type: Object,
+      required: true
     },
     visible: {
       type: Boolean,
@@ -117,11 +133,53 @@ export default defineComponent({
         note: ''
       }
     ]);
+    const setLoading = v => store.commit('setLoading', v);
     const onCancel = (e = null) => {
       emit('close');
     };
     const onConfirm = (e = null) => {
-      onCancel();
+      const xhrFn = {
+        send: xhrSendValidateInfo,
+        transmit: xhrSendTransmitValidateInfo,
+        rollback: xhrSendRollbacktValidateInfo
+      }[props.oprType];
+      if (!xhrFn) throw new Error(`oprType值有误！`);
+      setLoading(true);
+      const { rtKey, workFlowCode, judgmentCondition } = props.extraInfo
+      // TODO：参数待修改
+      xhrFn({
+        rtKey,
+        workFlowCode,
+        judgmentCondition,
+        EmployeeNumber: '00000337',
+        EmployeeName: '李仁新',
+        Suggestion: '联合验收1',
+        NextActivityList: [
+          {
+            ActID: 5409985,
+            ActName: '部门专责验收',
+            ActDescr: '部门专责验收',
+            Hide: false
+          }
+        ],
+        ActivityCandidateList: [
+          {
+            ActivityID: 5409985,
+            ActivityName: '部门专责验收',
+            ActivityCode: 'WBYS00201',
+            PeopleList: ['00001038'],
+            StationList: [],
+            DepartmentList: []
+          }
+        ]
+      })
+        .then(res => {
+          if (res.flag) {
+            $toast(res.msg);
+            onCancel();
+          }
+        })
+        .finally(() => setLoading(false));
     };
     const handlePeopleChange = v => {
       approvers.value = v;
@@ -200,6 +258,6 @@ export default defineComponent({
 }
 
 .my-col-pad {
-  padding-right: .5em;
+  padding-right: 0.5em;
 }
 </style>
