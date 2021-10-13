@@ -1,7 +1,12 @@
-import request from '@/utils/request'
+import request, { getLoginInfo } from '@/utils/request'
 import mockData from './mock'
 
 const ENABLE_MOCK = process.env.NODE_ENV === 'development'
+
+const handleParams = obj => {
+  const { uId, uName } = getLoginInfo()
+  return { uId, uName, ...obj }
+}
 
 /**
  * 审批中心列表
@@ -12,7 +17,7 @@ export function xhrGetTodoList(params: any) {
   return request({
     url: '/API/AppvoalCenterAPI/GetWFListByPage',
     method: 'get',
-    params,
+    params: handleParams(params),
   })
 }
 

@@ -13,20 +13,42 @@
     <van-checkbox-group v-model="checked">
       <van-cell-group>
         <van-cell
-          v-for="(item, index) in list"
+          v-for="item in list"
           clickable
           :key="getId(item)"
           :title="getName(item)"
-          @click="toggle(index)"
+          @click="toggle(item)"
         >
           <template #right-icon>
             <van-checkbox
               :name="getId(item)"
-              :ref="el => (checkboxRefs[index] = el)"
+              :ref="el => setRef(el, item)"
               @click.stop
             />
           </template>
         </van-cell>
+        <template v-if="extraList.length">
+          <p v-if="!moreStatus" class="my-split">
+            <a @click="moreStatus = !moreStatus">查看更多</a>
+          </p>
+          <template v-else>
+            <van-cell
+              v-for="item in extraList"
+              clickable
+              :key="getId(item)"
+              :title="getName(item)"
+              @click="toggle(item)"
+            >
+              <template #right-icon>
+                <van-checkbox
+                  :name="getId(item)"
+                  :ref="el => setRef(el, item)"
+                  @click.stop
+                />
+              </template>
+            </van-cell>
+          </template>
+        </template>
       </van-cell-group>
     </van-checkbox-group>
   </div>
@@ -45,6 +67,10 @@ export default {
       type: Array,
       default: () => ([] as any[])
     },
+    extraList: {
+      type: Array,
+      default: () => ([] as any[])
+    },
     visible: {
       type: Boolean,
       default: false
@@ -59,11 +85,13 @@ export default {
     }
   },
   setup(props, { emit }) {
+    const moreStatus = ref(false)
     const { visible: propVisible } = toRefs(props);
     const checked = ref<string[]>([]);
-    const checkboxRefs = ref<any[]>([]);
-    const toggle = index => {
-      (checkboxRefs.value[index] as any).toggle();
+    const checkboxRefs = ref<any>({});
+    const toggle = item => {
+      const id = item[props.idKey];
+      (checkboxRefs.value[id] as any).toggle();
     };
     const onCancel = () => {
       emit('close')
@@ -73,9 +101,12 @@ export default {
     }
     const init = () => {
       checked.value = [...(props.value as string[])]
+      moreStatus.value = !props.list.length || props.extraList.some((d: any) => checked.value.includes(d[props.idKey]))
     }
     const reset = () => {
       checked.value = []
+      checkboxRefs.value = {}
+      moreStatus.value = false
     }
     watch(propVisible, v => {
       if (v) init();
@@ -86,10 +117,12 @@ export default {
       toggle,
       checked,
       checkboxRefs,
+      moreStatus,
       onConfirm,
       onCancel,
       getId: item => item[props.idKey],
       getName: item => item[props.nameKey],
+      setRef: (el, item) => (checkboxRefs.value[item[props.idKey]] = el),
     };
   }
 };
@@ -115,6 +148,15 @@ export default {
 .my-btngroup {
   display: flex;
   justify-content: space-between;
+}
+
+.my-split {
+  padding: var(--van-cell-vertical-padding) var(--van-cell-horizontal-padding);
+  line-height: var(--van-cell-line-height);
+  text-align: center;
+  a {
+    color: var(--van-button-primary-background-color);
+  }
 }
 
 </style>

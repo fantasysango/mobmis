@@ -364,7 +364,32 @@ export default {
         ],
         "stationPermissionList": [],
         "departmentPermissionList": [],
-        "internalControlList": null,
+        "internalControlList": [
+          {
+            "cR_ID": 27318,
+            "cR_CM_NAME": "项目基本信息是否准确：包括并不限于所属公司、项目名称、合同编号、进度描述、验收日期等"
+          },
+          {
+            "cR_ID": 27319,
+            "cR_CM_NAME": "项目过程信息是否准确：包括并不限于项目内容、完成比例、节点工期、施工评价、工期信息等"
+          },
+          {
+            "cR_ID": 27320,
+            "cR_CM_NAME": "现场验收报告是否齐全、有效"
+          },
+          {
+            "cR_ID": 27321,
+            "cR_CM_NAME": "工程量复核意见是否经相关部门的确认"
+          },
+          {
+            "cR_ID": 27322,
+            "cR_CM_NAME": "验收意见是否均已得到有效落实"
+          },
+          {
+            "cR_ID": 27323,
+            "cR_CM_NAME": "确认承包商是否将验收资料提交完整"
+          }
+        ],
         "endActivity": false
       }
     ]

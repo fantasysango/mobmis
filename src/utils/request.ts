@@ -6,12 +6,19 @@ const instance = axios.create({
     // timeout: 6000, // 请求超时时间
 })
 
-let token = ''
+const loginInfo = {
+    token: '',
+    uId: '',
+    uName: '',
+}
+
+export const getLoginInfo = (k = '') => k ? loginInfo[k] : loginInfo
 
 // request interceptor
 instance.interceptors.request.use((config: AxiosRequestConfig) => {
     config.headers = {
-        token,
+        token: loginInfo.token,
+        uId: loginInfo.uId,
         ...config.headers,
     }
     return config
@@ -36,7 +43,11 @@ const errorHandler = (error: any) => {
 instance.interceptors.response.use((response: AxiosResponse) => {
     const res = response.data
     if (res.token) {
-        token = res.token
+        Object.assign(loginInfo, {
+            token: res.token,
+            uId: res.uId,
+            uName: res.uName,
+        })
     }
     if (!res.flag && res.msg) {
         Toast(res.msg)

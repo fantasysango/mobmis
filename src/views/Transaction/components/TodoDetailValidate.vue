@@ -34,7 +34,7 @@
           <div
             class="my-question-item"
             v-for="(item, index) in questions"
-            :key="index"
+            :key="item.id"
           >
             <van-row align="center">
               <van-col span="16" class="my-col-pad"
@@ -66,6 +66,7 @@
     >
       <PeopleList
         :list="peopleList"
+        :extraList="peopleExtraList"
         :value="approvers"
         :visible="modalVisible"
         idKey="number"
@@ -115,6 +116,7 @@ export default defineComponent({
     const activeNames = ref(['1', '2']);
     const approvers = ref<string[]>([]);
     const peopleList = ref<{ name: string; number: number }[]>([]);
+    const peopleExtraList = ref<{ name: string; number: number }[]>([]);
     const modalVisible = ref(false);
     const toggleModal = (v = !modalVisible.value) => {
       console.log('toggleModal PeopleList!');
@@ -122,16 +124,12 @@ export default defineComponent({
     };
     const comments = ref('');
     const questions = ref([
-      {
-        question: '内容合规点1',
-        answer: 1,
-        note: ''
-      },
-      {
-        question: '内容合规点2内容合规点2内容合规点2内容合规点2内容合规点2',
-        answer: 0,
-        note: ''
-      }
+      // {
+      //   id: 1,
+      //   question: '内容合规点1',
+      //   answer: 1,
+      //   note: ''
+      // },
     ]);
     const setLoading = v => store.commit('setLoading', v);
     const onCancel = (e = null) => {
@@ -185,11 +183,14 @@ export default defineComponent({
       approvers.value = v;
       toggleModal(false);
     };
-    const nameMap = computed(() => {
-      const map = {};
-      peopleList.value.forEach(d => (map[d.number] = d.name));
-      return map;
-    });
+    const convertToMap = (arr, idKey = 'number', valueKey = 'name') => {
+      const map = {}
+      arr.forEach(d => {
+        map[d[idKey]] = d[valueKey]
+      })
+      return map
+    }
+    const nameMap = computed(() => convertToMap([...peopleList.value, ...peopleExtraList.value]));
     const approverNames = computed(() =>
       approvers.value.map(d => nameMap.value[d]).join('、')
     );
@@ -197,10 +198,20 @@ export default defineComponent({
     const init = () => {
       const data = props.data || {};
       peopleList.value = data.peopleList || [];
+      const tmpMap = convertToMap(peopleList.value)
+      peopleExtraList.value = (data.peoplePermissionList || []).filter(d => tmpMap[d.number] === undefined)
+      questions.value = (data.internalControlList || []).map(d => ({
+        id: d.cR_ID,
+        question: d.cR_CM_NAME,
+        answer: 1,
+        note: ''
+      }))
     };
     const reset = () => {
       peopleList.value = [];
+      peopleExtraList.value = [];
       approvers.value = [];
+      questions.value = [];
       comments.value = '';
     };
     watch(propVisible, v => {
@@ -218,6 +229,7 @@ export default defineComponent({
       questions,
       modalVisible,
       peopleList,
+      peopleExtraList,
       toggleModal,
       onConfirm,
       onCancel,
