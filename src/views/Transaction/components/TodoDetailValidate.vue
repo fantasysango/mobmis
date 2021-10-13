@@ -22,7 +22,7 @@
       <van-collapse v-model="activeNames">
         <van-collapse-item title="审批意见" name="1">
           <van-field
-            v-model="comments"
+            v-model="suggestion"
             rows="3"
             autosize
             type="textarea"
@@ -69,6 +69,7 @@
         :extraList="peopleExtraList"
         :value="approvers"
         :visible="modalVisible"
+        :multi="props.data.isJointlySign"
         idKey="number"
         @change="handlePeopleChange"
         @close="toggleModal(false)"
@@ -122,7 +123,7 @@ export default defineComponent({
       console.log('toggleModal PeopleList!');
       modalVisible.value = v;
     };
-    const comments = ref('');
+    const suggestion = ref('');
     const questions = ref([
       // {
       //   id: 1,
@@ -144,14 +145,13 @@ export default defineComponent({
       if (!xhrFn) throw new Error(`oprType值有误！`);
       setLoading(true);
       const { rtKey, workFlowCode, judgmentCondition } = props.extraInfo
+      const { activityID, activityName, activityDescr, hide, nextActCode } = props.data
       // TODO：参数待修改
       xhrFn({
         rtKey,
         workFlowCode,
         judgmentCondition,
-        EmployeeNumber: '00000337',
-        EmployeeName: '李仁新',
-        Suggestion: '联合验收1',
+        suggestion: suggestion.value,
         NextActivityList: [
           {
             ActID: 5409985,
@@ -212,7 +212,7 @@ export default defineComponent({
       peopleExtraList.value = [];
       approvers.value = [];
       questions.value = [];
-      comments.value = '';
+      suggestion.value = '';
     };
     watch(propVisible, v => {
       if (v) init();
@@ -225,7 +225,7 @@ export default defineComponent({
       activeNames,
       approvers,
       approverNames,
-      comments,
+      suggestion,
       questions,
       modalVisible,
       peopleList,

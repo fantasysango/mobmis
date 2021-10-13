@@ -17,7 +17,7 @@ export function xhrGetTodoList(params: any) {
   return request({
     url: '/API/AppvoalCenterAPI/GetWFListByPage',
     method: 'get',
-    params: handleParams(params),
+    params,
   })
 }
 
@@ -51,8 +51,8 @@ export function xhrGetValidateInfo(params: any) {
   if (ENABLE_MOCK) return Promise.resolve(mockData.validateInfo)
   return request({
     url: '/API/WFConfig/WFSendNextBefore',
-    method: 'get',
-    params,
+    method: 'post',
+    data: handleParams(params),
   })
 }
 
@@ -65,7 +65,7 @@ export function xhrSendValidateInfo(params: any) {
   return request({
     url: '/API/WFConfig/WFSendNext',
     method: 'post',
-    data: params,
+    data: handleParams(params),
   })
 }
 
@@ -83,8 +83,8 @@ export function xhrGetTransmitValidateInfo(params: any) {
   if (ENABLE_MOCK) return Promise.resolve(mockData.validateInfo)
   return request({
     url: '/API/WFConfig/WFTransmitBefore',
-    method: 'get',
-    params,
+    method: 'post',
+    data: handleParams(params),
   })
 }
 
@@ -97,7 +97,7 @@ export function xhrSendTransmitValidateInfo(params: any) {
   return request({
     url: '/API/WFConfig/WFTransmit',
     method: 'post',
-    data: params,
+    data: handleParams(params),
   })
 }
 
@@ -115,8 +115,8 @@ export function xhrGetRollbackValidateInfo(params: any) {
   if (ENABLE_MOCK) return Promise.resolve(mockData.validateInfo)
   return request({
     url: '/API/WFConfig/WFSendPreviousBefore',
-    method: 'get',
-    params,
+    method: 'post',
+    data: handleParams(params),
   })
 }
 
@@ -129,6 +129,6 @@ export function xhrSendRollbacktValidateInfo(params: any) {
   return request({
     url: '/API/WFConfig/WFSendPrevious',
     method: 'post',
-    data: params,
+    data: handleParams(params),
   })
 }

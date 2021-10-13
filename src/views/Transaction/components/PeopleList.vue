@@ -63,6 +63,10 @@ export default {
       type: Array,
       default: () => ([] as string[])
     },
+    multi: {
+      type: [Number, Boolean],
+      default: 0
+    },
     list: {
       type: Array,
       default: () => ([] as any[])
@@ -92,6 +96,9 @@ export default {
     const toggle = item => {
       const id = item[props.idKey];
       (checkboxRefs.value[id] as any).toggle();
+      if (!props.multi) {
+        checkboxRefs.value.forEach(d => d.id !== id && d.toggle(false))
+      }
     };
     const onCancel = () => {
       emit('close')
