@@ -45,6 +45,14 @@
         @cancel="pickerVisible = false"
       />
     </van-popup>
+    <van-popup
+      v-model:show="modalVisible"
+      position="right"
+      :safe-area-inset-bottom="true"
+      :style="{ width: '100%', height: '100%' }"
+    >
+      <TodoDetail :data="editingData" :visible="modalVisible" @close="closeDetail" />
+    </van-popup>
   </div>
 </template>
 
@@ -54,16 +62,18 @@ import { $toast, closest } from '@/utils';
 import { ITodoItem } from '@/types';
 import { xhrGetTodoList } from '@/api';
 import TodoItem from './TodoItem.vue';
+import TodoDetail from './TodoDetail.vue';
 import dayjs from 'dayjs';
 import store from '@/store';
 
 export default defineComponent({
   name: 'TodoTab',
   components: {
-    TodoItem
+    TodoItem,
+    TodoDetail,
   },
   setup(props, { emit }) {
-    const [minDate, maxDate] = [new Date(2018, 0, 1), new Date()];
+    const [minDate, maxDate] = [dayjs().subtract(7, 'day').toDate(), new Date()];
     const currentDate = ref<Date | null>(null);
     const dateRange = ref<Date[]>([minDate, maxDate]);
     const formatDate = (v: Date) => dayjs(v).format('YYYY-MM-DD');
@@ -73,13 +83,14 @@ export default defineComponent({
     const setLoading = v => store.commit('setLoading', v);
     const fetchData = () => {
       setLoading(true);
+      console.log('-- xhrGetTodoList')
       const [start, end] = dateRange.value;
       xhrGetTodoList({
         empCode: 10101887,
         pageIndex: 1,
         pageSize: 1000,
-        start,
-        end
+        start: formatDate(start),
+        end: formatDate(end)
       })
         .then(res => {
           if (res.flag) {
@@ -88,12 +99,24 @@ export default defineComponent({
         })
         .finally(() => setLoading(false));
     };
+    // 详情弹出层显隐逻辑
+    const modalVisible = ref(false);
+    const editingData = ref<any>(null);
+    const closeDetail = (reresh = false) => {
+      modalVisible.value = false;
+      if (reresh) fetchData()
+    };
+    const enterDetail = item => {
+      editingData.value = item;
+      modalVisible.value = true;
+    };
+
     const handleClick = (e: any) => {
       const el: any = closest(e.target, '[data-index]');
       if (el) {
         const index = el.dataset.index;
         const item = items.value[index];
-        emit('enterDetail', item);
+        enterDetail(item)
       }
     };
     let activeIdx = 0;
@@ -107,20 +130,24 @@ export default defineComponent({
       currentDate.value = dateRange.value[idx];
       pickerVisible.value = true;
     };
+
     onMounted(() => {
       fetchData();
     });
     return {
+      editingData,
       currentDate,
       pickerVisible,
       dateRange,
       items,
       minDate,
       maxDate,
+      modalVisible,
+      closeDetail,
       formatDate,
       handleClick,
       onPickerConfirm,
-      doPickDate
+      doPickDate,
     };
   }
 });

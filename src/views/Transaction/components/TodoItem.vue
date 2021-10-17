@@ -5,7 +5,7 @@
         ><h3 class="ut-text-overflow">{{ item.workFlowName }}</h3></van-col
       >
       <van-col span="4" style="text-align: right">
-        <van-button size="small">发送</van-button>
+        <van-button round plain size="small">发送</van-button>
       </van-col>
     </van-row>
     <p class="my-desc">{{ item.sendUser }}</p>

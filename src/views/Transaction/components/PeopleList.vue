@@ -3,8 +3,8 @@
     <van-nav-bar class="my-header" fixed>
       <template #title>
         <div class="my-btngroup">
-          <van-button size="small" @click="onCancel">取消</van-button>
-          <van-button type="primary" size="small" @click="onConfirm"
+          <van-button round plain size="small" @click="onCancel">取消</van-button>
+          <van-button round plain type="primary" size="small" @click="onConfirm"
             >确定</van-button
           >
         </div>
@@ -97,7 +97,10 @@ export default {
       const id = item[props.idKey];
       (checkboxRefs.value[id] as any).toggle();
       if (!props.multi) {
-        checkboxRefs.value.forEach(d => d.id !== id && d.toggle(false))
+        Object.keys(checkboxRefs.value).forEach(k => {
+          if (k === id) return;
+          checkboxRefs.value[k]?.toggle(false)
+        })
       }
     };
     const onCancel = () => {

@@ -2,7 +2,7 @@
   <div class="TodoDetail-container">
     <van-nav-bar
       left-arrow
-      @click-left="onClickLeft"
+      @click-left="onClickLeft()"
       :fixed="true"
       :placeholder="true"
     >
@@ -58,19 +58,19 @@
     </div>
     <div class="my-footer">
       <van-row class="my-foot-btngroup" justify="space-between">
-        <van-button type="success" size="small" @click="onSend('send')"
+        <van-button round plain type="success" size="small" @click="onSend('send')"
           >发送</van-button
         >
-        <van-button type="danger" size="small" @click="onSend('rollback')">回退</van-button>
-        <van-button type="primary" size="small" @click="onSend('transmit')">转发</van-button>
+        <van-button round plain type="danger" size="small" @click="onSend('rollback')">回退</van-button>
+        <van-button round plain type="primary" size="small" @click="onSend('transmit')">转发</van-button>
       </van-row>
     </div>
     <van-popup
       v-model:show="modalVisible"
-      position="bottom"
+      position="right"
       :style="{ width: '100%', height: '100%' }"
     >
-      <TodoDetailValidate :oprType="activeOprType" :extraInfo="extraInfo" :data="validateInfo" :visible="modalVisible" @close="toggleModal(false)" />
+      <TodoDetailValidate :oprType="activeOprType" :extraInfo="extraInfo" :data="validateInfo" :visible="modalVisible" @close="onCloseValidate" />
     </van-popup>
   </div>
 </template>
@@ -119,7 +119,7 @@ export default defineComponent({
     const activeOprType = ref<TOprType | ''>('')
     let judgementText = '';
     const setLoading = v => store.commit('setLoading', v);
-    const onClickLeft = (e = null) => {
+    const onClickLeft = () => {
       emit('close');
     };
     const toggleModal = (v = !modalVisible.value) => {
@@ -168,6 +168,10 @@ export default defineComponent({
       el.target = '_blank';
       el.click();
     };
+    const onCloseValidate = (allClose = false) => {
+      toggleModal(false)
+      if (allClose) emit('close', true);
+    }
     const init = () => {
       console.log('===== init =====');
       const { workFlowCode, workFlowKey } = (props.data || {}) as ITodoItem;
@@ -227,6 +231,7 @@ export default defineComponent({
       extraInfo,
       onClickLeft,
       toggleModal,
+      onCloseValidate,
       onSend,
       onDownload
     };

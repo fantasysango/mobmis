@@ -3,8 +3,8 @@
     <van-nav-bar class="my-header" fixed>
       <template #title>
         <div class="my-btngroup">
-          <van-button size="small" @click="onCancel">取消</van-button>
-          <van-button type="primary" size="small" @click="onConfirm"
+          <van-button round plain size="small" @click="onCancel()">取消</van-button>
+          <van-button round plain type="primary" size="small" @click="onConfirm()"
             >确定</van-button
           >
         </div>
@@ -24,6 +24,7 @@
           <van-field
             v-model="suggestion"
             rows="3"
+            maxlength="300"
             autosize
             type="textarea"
             placeholder="请填写审批意见"
@@ -48,8 +49,10 @@
               </van-col>
             </van-row>
             <van-field
+              v-if="!item.answer"
               v-model="item.note"
               rows="1"
+              maxlength="100"
               autosize
               label="备注："
               type="textarea"
@@ -69,7 +72,7 @@
         :extraList="peopleExtraList"
         :value="approvers"
         :visible="modalVisible"
-        :multi="props.data.isJointlySign"
+        :multi="isMultiPeople"
         idKey="number"
         @change="handlePeopleChange"
         @close="toggleModal(false)"
@@ -101,7 +104,7 @@ export default defineComponent({
     },
     data: {
       type: Object,
-      required: true
+      default: null
     },
     extraInfo: {
       type: Object,
@@ -118,25 +121,29 @@ export default defineComponent({
     const approvers = ref<string[]>([]);
     const peopleList = ref<{ name: string; number: number }[]>([]);
     const peopleExtraList = ref<{ name: string; number: number }[]>([]);
+    const isMultiPeople = ref<boolean>(false);
     const modalVisible = ref(false);
     const toggleModal = (v = !modalVisible.value) => {
       console.log('toggleModal PeopleList!');
       modalVisible.value = v;
     };
     const suggestion = ref('');
-    const questions = ref([
-      // {
-      //   id: 1,
-      //   question: '内容合规点1',
-      //   answer: 1,
-      //   note: ''
-      // },
-    ]);
+    const questions = ref<
+      {
+        id: number;
+        question: string; // 选否时的意见
+        answer: 0 | 1;
+        note: string;
+      }[]
+    >([]);
     const setLoading = v => store.commit('setLoading', v);
-    const onCancel = (e = null) => {
+    const onCancel = () => {
       emit('close');
     };
-    const onConfirm = (e = null) => {
+    const onConfirm = () => {
+      if (!props.data) return $toast('初始数据有误！');
+      if (!approvers.value.length) return $toast('请选择审批对象！');
+      if (!suggestion.value) return $toast('请输入审批意见！');
       const xhrFn = {
         send: xhrSendValidateInfo,
         transmit: xhrSendTransmitValidateInfo,
@@ -144,37 +151,44 @@ export default defineComponent({
       }[props.oprType];
       if (!xhrFn) throw new Error(`oprType值有误！`);
       setLoading(true);
-      const { rtKey, workFlowCode, judgmentCondition } = props.extraInfo
-      const { activityID, activityName, activityDescr, hide, nextActCode } = props.data
-      // TODO：参数待修改
-      xhrFn({
+      const { rtKey, workFlowCode, judgmentCondition } = props.extraInfo;
+      const { activityID, activityName, activityDescr, hide, nextActCode } =
+        props.data;
+      const params = {
         rtKey,
         workFlowCode,
         judgmentCondition,
         suggestion: suggestion.value,
-        NextActivityList: [
+        nextActivityList: [
           {
-            ActID: 5409985,
-            ActName: '部门专责验收',
-            ActDescr: '部门专责验收',
-            Hide: false
+            actID: activityID,
+            actName: activityName,
+            actDescr: activityDescr,
+            hide
           }
         ],
-        ActivityCandidateList: [
+        activityCandidateList: [
           {
-            ActivityID: 5409985,
-            ActivityName: '部门专责验收',
-            ActivityCode: 'WBYS00201',
-            PeopleList: ['00001038'],
-            StationList: [],
-            DepartmentList: []
+            activityID,
+            activityName,
+            activityCode: nextActCode,
+            peopleList: approvers.value,
+            // stationList: [],
+            // departmentList: []
           }
-        ]
-      })
+        ],
+        internalControlList: questions.value.map(d => ({
+          cR_ID: d.id,
+          cR_CK_ID: +d.answer,
+          cR_Opinion: +d.answer ? '' : d.note
+        }))
+      }
+      console.log('发送参数 -----', params)
+      xhrFn(params)
         .then(res => {
           if (res.flag) {
             $toast(res.msg);
-            onCancel();
+            emit('close', true);
           }
         })
         .finally(() => setLoading(false));
@@ -184,28 +198,33 @@ export default defineComponent({
       toggleModal(false);
     };
     const convertToMap = (arr, idKey = 'number', valueKey = 'name') => {
-      const map = {}
+      const map = {};
       arr.forEach(d => {
-        map[d[idKey]] = d[valueKey]
-      })
-      return map
-    }
-    const nameMap = computed(() => convertToMap([...peopleList.value, ...peopleExtraList.value]));
+        map[d[idKey]] = d[valueKey];
+      });
+      return map;
+    };
+    const nameMap = computed(() =>
+      convertToMap([...peopleList.value, ...peopleExtraList.value])
+    );
     const approverNames = computed(() =>
       approvers.value.map(d => nameMap.value[d]).join('、')
     );
 
     const init = () => {
       const data = props.data || {};
+      isMultiPeople.value = data.isJointlySign || false;
       peopleList.value = data.peopleList || [];
-      const tmpMap = convertToMap(peopleList.value)
-      peopleExtraList.value = (data.peoplePermissionList || []).filter(d => tmpMap[d.number] === undefined)
+      const tmpMap = convertToMap(peopleList.value);
+      peopleExtraList.value = (data.peoplePermissionList || []).filter(
+        d => tmpMap[d.number] === undefined
+      );
       questions.value = (data.internalControlList || []).map(d => ({
         id: d.cR_ID,
         question: d.cR_CM_NAME,
         answer: 1,
         note: ''
-      }))
+      }));
     };
     const reset = () => {
       peopleList.value = [];
@@ -230,6 +249,7 @@ export default defineComponent({
       modalVisible,
       peopleList,
       peopleExtraList,
+      isMultiPeople,
       toggleModal,
       onConfirm,
       onCancel,
@@ -271,5 +291,13 @@ export default defineComponent({
 
 .my-col-pad {
   padding-right: 0.5em;
+}
+
+.my-question-item {
+  padding-bottom: 1em;
+}
+
+::v-deep .van-field__body {
+  font-weight: normal;
 }
 </style>
