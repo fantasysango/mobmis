@@ -8,7 +8,7 @@ const instance = axios.create({
 
 const loginInfo = {
     token: '',
-    uId: '',
+    uid: '',
     uName: '',
 }
 
@@ -18,7 +18,7 @@ export const getLoginInfo = (k = '') => k ? loginInfo[k] : loginInfo
 instance.interceptors.request.use((config: AxiosRequestConfig) => {
     config.headers = {
         token: loginInfo.token,
-        uId: loginInfo.uId,
+        uid: loginInfo.uid,
         ...config.headers,
     }
     return config
@@ -45,7 +45,7 @@ instance.interceptors.response.use((response: AxiosResponse) => {
     if (res.token) {
         Object.assign(loginInfo, {
             token: res.token,
-            uId: res.uId,
+            uid: res.uid,
             uName: res.uName,
         })
     }

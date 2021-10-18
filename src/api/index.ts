@@ -4,8 +4,17 @@ import mockData from './mock'
 const ENABLE_MOCK = process.env.NODE_ENV === 'development'
 
 const handleParams = obj => {
-  const { uId, uName } = getLoginInfo()
-  return { uId, uName, ...obj }
+  const { uid, uname } = getLoginInfo()
+  return { uid, uname, ...obj }
+}
+
+const handleSendParams = obj => {
+  const { uid, uname } = getLoginInfo()
+  return {
+    employeeName: uid,
+    employeeNumber: uname,
+    ...obj
+  }
 }
 
 /**
@@ -41,7 +50,7 @@ export function xhrGetTodoDetail(params: any) {
  * 发送前（点击详情页面的发送按钮调用）
  * @param params {
             uid:当前用户ID（工号）
-            uName:当前用户名
+            uname:当前用户名
             rtKey:（取自列表接口返回的WorkFlowKey）)
             workFlowCode 流程编码（本次外包完工验收申请流程编码为WBYS）
             judgmentCondition：点击发送按钮时需先判断是否有弹出框，根据弹出框内容选择之后将选项（“true”或“false”赋值此参数，string类型） 当前外包完工验收流程有三个节点需要，1验收申请-->联合验收，2归口专责验收--专业会审3部门验收-运行验收
@@ -65,7 +74,7 @@ export function xhrSendValidateInfo(params: any) {
   return request({
     url: '/API/WFConfig/WFSendNext',
     method: 'post',
-    data: handleParams(params),
+    data: handleSendParams(params),
   })
 }
 
@@ -73,7 +82,7 @@ export function xhrSendValidateInfo(params: any) {
  * 转发前（说明：与发送前接口一致）
  * @param params {
             uid:当前用户ID（工号）
-            uName:当前用户名
+            uname:当前用户名
             rtKey:（取自列表接口返回的WorkFlowKey）)
             workFlowCode 流程编码（本次外包完工验收申请流程编码为WBYS）
             judgmentCondition：点击发送按钮时需先判断是否有弹出框，根据弹出框内容选择之后将选项（“true”或“false”赋值此参数，string类型） 当前外包完工验收流程有三个节点需要，1验收申请-->联合验收，2归口专责验收--专业会审3部门验收-运行验收
@@ -97,7 +106,7 @@ export function xhrSendTransmitValidateInfo(params: any) {
   return request({
     url: '/API/WFConfig/WFTransmit',
     method: 'post',
-    data: handleParams(params),
+    data: handleSendParams(params),
   })
 }
 
@@ -105,7 +114,7 @@ export function xhrSendTransmitValidateInfo(params: any) {
  * 回退前（说明：参数与发送前接口一致，但返回值不一致！）
  * @param params {
             uid:当前用户ID（工号）
-            uName:当前用户名
+            uname:当前用户名
             rtKey:（取自列表接口返回的WorkFlowKey）)
             workFlowCode 流程编码（本次外包完工验收申请流程编码为WBYS）
             judgmentCondition：点击发送按钮时需先判断是否有弹出框，根据弹出框内容选择之后将选项（“true”或“false”赋值此参数，string类型） 当前外包完工验收流程有三个节点需要，1验收申请-->联合验收，2归口专责验收--专业会审3部门验收-运行验收
@@ -129,6 +138,6 @@ export function xhrSendRollbacktValidateInfo(params: any) {
   return request({
     url: '/API/WFConfig/WFSendPrevious',
     method: 'post',
-    data: handleParams(params),
+    data: handleSendParams(params),
   })
 }

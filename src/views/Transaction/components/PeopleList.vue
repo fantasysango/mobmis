@@ -131,7 +131,7 @@ export default {
       onConfirm,
       onCancel,
       getId: item => item[props.idKey],
-      getName: item => item[props.nameKey],
+      getName: item => `${item[props.idKey]}|${item[props.nameKey]}${item.deptName ? '|' + item.deptName : ''}`,
       setRef: (el, item) => (checkboxRefs.value[item[props.idKey]] = el),
     };
   }

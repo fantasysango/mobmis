@@ -58,11 +58,30 @@
     </div>
     <div class="my-footer">
       <van-row class="my-foot-btngroup" justify="space-between">
-        <van-button round plain type="success" size="small" @click="onSend('send')"
+        <van-button
+          round
+          plain
+          type="success"
+          size="small"
+          @click="onSend('send')"
           >发送</van-button
         >
-        <van-button round plain type="danger" size="small" @click="onSend('rollback')">回退</van-button>
-        <van-button round plain type="primary" size="small" @click="onSend('transmit')">转发</van-button>
+        <van-button
+          round
+          plain
+          type="danger"
+          size="small"
+          @click="onSend('rollback')"
+          >回退</van-button
+        >
+        <van-button
+          round
+          plain
+          type="primary"
+          size="small"
+          @click="onSend('transmit')"
+          >转发</van-button
+        >
       </van-row>
     </div>
     <van-popup
@@ -70,7 +89,13 @@
       position="right"
       :style="{ width: '100%', height: '100%' }"
     >
-      <TodoDetailValidate :oprType="activeOprType" :extraInfo="extraInfo" :data="validateInfo" :visible="modalVisible" @close="onCloseValidate" />
+      <TodoDetailValidate
+        :oprType="activeOprType"
+        :extraInfo="extraInfo"
+        :data="validateInfo"
+        :visible="modalVisible"
+        @close="onCloseValidate"
+      />
     </van-popup>
   </div>
 </template>
@@ -83,7 +108,11 @@ import TodoDetailValidate from './TodoDetailValidate.vue';
 import { ITodoItem, TOprType } from '@/types';
 import { TODO_DETAIL_COLUMNS } from '@/constants';
 import store from '@/store';
-import { xhrGetValidateInfo, xhrGetTransmitValidateInfo, xhrGetRollbackValidateInfo } from '@/api';
+import {
+  xhrGetValidateInfo,
+  xhrGetTransmitValidateInfo,
+  xhrGetRollbackValidateInfo
+} from '@/api';
 
 export default defineComponent({
   name: 'TodoDetail',
@@ -116,7 +145,7 @@ export default defineComponent({
     const modalVisible = ref(false);
     const validateInfo = ref<any>(null);
     const extraInfo = ref<any>(null);
-    const activeOprType = ref<TOprType | ''>('')
+    const activeOprType = ref<TOprType | ''>('');
     let judgementText = '';
     const setLoading = v => store.commit('setLoading', v);
     const onClickLeft = () => {
@@ -126,10 +155,9 @@ export default defineComponent({
       modalVisible.value = v;
     };
     const onSend = async (oprType: TOprType = 'send') => {
-      const { workFlowKey, workFlowCode } = (props.data ||
-        {}) as ITodoItem;
+      const { workFlowKey, workFlowCode } = (props.data || {}) as ITodoItem;
       let judgmentCondition = 'false';
-      if (judgementText) {
+      if (oprType === 'send' && judgementText) {
         await $dialog
           .confirm({
             message: judgementText
@@ -140,22 +168,22 @@ export default defineComponent({
       const xhrFn = {
         send: xhrGetValidateInfo,
         rollback: xhrGetRollbackValidateInfo,
-        transmit: xhrGetTransmitValidateInfo,
-      }[oprType]
-      if (!xhrFn) throw new Error(`oprType值有误！`)
-      setLoading(true)
+        transmit: xhrGetTransmitValidateInfo
+      }[oprType];
+      if (!xhrFn) throw new Error(`oprType值有误！`);
+      setLoading(true);
       const params = {
         rtKey: workFlowKey,
         workFlowCode: workFlowCode,
         judgmentCondition: judgmentCondition
-      }
+      };
       xhrFn(params)
         .then(res => {
           if (res.flag) {
             validateInfo.value = (res.data || [])[0];
-            console.log('validateInfo.value', validateInfo.value)
-            extraInfo.value = params
-            activeOprType.value = oprType
+            console.log('validateInfo.value', validateInfo.value);
+            extraInfo.value = params;
+            activeOprType.value = oprType;
             toggleModal(true);
           }
         })
@@ -169,24 +197,27 @@ export default defineComponent({
       el.click();
     };
     const onCloseValidate = (allClose = false) => {
-      toggleModal(false)
+      toggleModal(false);
       if (allClose) emit('close', true);
-    }
+    };
     const init = () => {
       console.log('===== init =====');
       const { workFlowCode, workFlowKey } = (props.data || {}) as ITodoItem;
       xhrGetTodoDetail({
         workFlowCode,
-        workFlowKey,
+        workFlowKey
       }).then(res => {
         if (res.flag) {
           const { formData, ftpAttachment, suggestions } = res.data;
           // 基础信息
           if (formData) {
             baseList.value.forEach(d => {
-              d.value = formData[d.key] || '';
+              d.value =
+                (['cwxm', 'zzjs'].includes(d.key)
+                  ? { 0: '否', 1: '是' }[formData[d.key]]
+                  : formData[d.key]) || '';
             });
-            judgementText = formData.judgementText
+            judgementText = formData.judgementText;
           }
           // 附件
           if (ftpAttachment)
