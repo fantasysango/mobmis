@@ -31,7 +31,7 @@
             style="padding: 0"
           />
         </van-collapse-item>
-        <van-collapse-item title="内容合规点" name="2">
+        <van-collapse-item v-if="questions.length" title="内容合规点" name="2">
           <div
             class="my-question-item"
             v-for="(item, index) in questions"

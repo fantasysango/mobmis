@@ -394,6 +394,11 @@ export default {
       }
     ]
   },
+  rollbackValidateInfo: {
+    "flag": 1,
+    "msg": "success",
+    "data": [{ "preActionName": "验收申请", "preActionDescr": "验收申请", "procSetID": 162, "procVerID": 162, "callbackUserList": [{ "employeeNumber": "00001119", "employeeName": "邱叶新", "departmentID": 0, "departmentName": "" }] }]
+  },
   sendInfo: {
     "flag": 1,
     "msg": "发送成功",

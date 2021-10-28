@@ -154,6 +154,27 @@ export default defineComponent({
     const toggleModal = (v = !modalVisible.value) => {
       modalVisible.value = v;
     };
+    const convertData = (oprType, data) => {
+      if (oprType !== 'rollback') return data;
+      return {
+        procSetID: data.procSetID,
+        activityID: data.procVerID, // TODO: ?
+        activityName: data.preActionName,
+        activityDescr: data.preActionDescr,
+        nextActCode: '', // TODO: data.nextActCode ?
+        isJointlySign: 0,
+        hide: false,
+        peopleList: data.callbackUserList.map(d => ({
+          number: d.employeeNumber,
+          name: d.employeeName,
+          pinYin: '',
+          deptID: d.departmentID,
+          deptName: d.departmentName,
+          orgID: 0,
+          orgName: ''
+        }))
+      };
+    };
     const onSend = async (oprType: TOprType = 'send') => {
       const { workFlowKey, workFlowCode } = (props.data || {}) as ITodoItem;
       let judgmentCondition = 'false';
@@ -180,7 +201,7 @@ export default defineComponent({
       xhrFn(params)
         .then(res => {
           if (res.flag) {
-            validateInfo.value = (res.data || [])[0];
+            validateInfo.value = convertData(oprType, (res.data || [])[0]);
             console.log('validateInfo.value', validateInfo.value);
             extraInfo.value = params;
             activeOprType.value = oprType;

@@ -121,7 +121,7 @@ export function xhrSendTransmitValidateInfo(params: any) {
           }
  */
 export function xhrGetRollbackValidateInfo(params: any) {
-  if (ENABLE_MOCK) return Promise.resolve(mockData.validateInfo)
+  if (ENABLE_MOCK) return Promise.resolve(mockData.rollbackValidateInfo)
   return request({
     url: '/API/WFConfig/WFSendPreviousBefore',
     method: 'post',
