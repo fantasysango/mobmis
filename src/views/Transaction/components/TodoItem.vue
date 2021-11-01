@@ -53,6 +53,7 @@ export default defineComponent({
   .my-title {
   }
   .my-desc {
+    margin-bottom: .5em;
     font-size: $fsSmall;
     color: var(--van-gray-7);
   }

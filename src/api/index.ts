@@ -11,8 +11,8 @@ const handleParams = obj => {
 const handleSendParams = obj => {
   const { uid, uname } = getLoginInfo()
   return {
-    employeeName: uid,
-    employeeNumber: uname,
+    employeeName: uname,
+    employeeNumber: uid,
     ...obj
   }
 }

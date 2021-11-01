@@ -39,19 +39,43 @@
             </van-col>
           </van-row>
         </van-collapse-item>
-        <van-collapse-item title="审批历史" name="2">
+        <van-collapse-item v-if="!isJointlySign" title="会签意见" name="2">
+          <van-field
+            v-model="suggestionVal"
+            rows="3"
+            maxlength="300"
+            autosize
+            type="textarea"
+            placeholder="请填写会签意见"
+            style="padding: 0"
+          />
+        </van-collapse-item>
+        <van-collapse-item title="审批历史" name="3">
           <van-row
             v-for="(historyItem, historyIndex) in historyList"
+            class="my-row-history"
             :key="historyIndex"
           >
             <van-col span="8" class="my-base-item">{{
               historyItem.stepTitle
             }}</van-col>
             <van-col span="16" class="my-item-cont">
-              <p>{{ historyItem.operator }}</p>
-              <p>{{ historyItem.operateDate }}</p>
-              <p>{{ historyItem.result }}</p>
+              <template v-if="historyItem.details">
+                <div v-for="(detailItem, detailIndex) in historyItem.details" :key="detailIndex">
+                  <p>{{ detailItem.operator }}</p>
+                  <p>{{ detailItem.operateDate }}</p>
+                  <p>{{ detailItem.result }}</p>
+                </div>
+              </template>
+              <template v-else>
+                <p>{{ historyItem.operator }}</p>
+                <p>{{ historyItem.operateDate }}</p>
+                <p>{{ historyItem.result }}</p>
+              </template>
             </van-col>
+          </van-row>
+          <van-row class="my-row-opinion">
+
           </van-row>
         </van-collapse-item>
       </van-collapse>
@@ -101,7 +125,7 @@
 </template>
 
 <script lang="ts">
-import { ref, watch, toRefs, defineComponent, onMounted } from 'vue';
+import { ref, computed, watch, toRefs, defineComponent, onMounted } from 'vue';
 import { $toast, $dialog } from '@/utils';
 import { xhrGetTodoDetail } from '@/api';
 import TodoDetailValidate from './TodoDetailValidate.vue';
@@ -139,7 +163,8 @@ export default defineComponent({
           value: ''
         })))(TODO_DETAIL_COLUMNS.formData)
     );
-    const activeNames = ref(['1', '2']);
+    const suggestionVal = ref('');
+    const activeNames = ref(['1', '2', '3']);
     const attachList = ref([] as any[]);
     const historyList = ref([] as any[]);
     const modalVisible = ref(false);
@@ -154,6 +179,7 @@ export default defineComponent({
     const toggleModal = (v = !modalVisible.value) => {
       modalVisible.value = v;
     };
+    const isJointlySign = computed(() => (props.data || {}).isJointlySign || 0)
     const convertData = (oprType, data) => {
       if (oprType !== 'rollback') return data;
       return {
@@ -162,7 +188,7 @@ export default defineComponent({
         activityName: data.preActionName,
         activityDescr: data.preActionDescr,
         nextActCode: '', // TODO: data.nextActCode ?
-        isJointlySign: 0,
+        isJointlySign: isJointlySign.value,
         hide: false,
         peopleList: data.callbackUserList.map(d => ({
           number: d.employeeNumber,
@@ -196,11 +222,17 @@ export default defineComponent({
       const params = {
         rtKey: workFlowKey,
         workFlowCode: workFlowCode,
-        judgmentCondition: judgmentCondition
+        judgmentCondition: judgmentCondition,
+        ...(oprType === 'send' ? { suggestion: suggestionVal.value } : {}),
       };
+      console.log('params =====>', params)
       xhrFn(params)
         .then(res => {
           if (res.flag) {
+            if (oprType === 'send' && res.msg === 'success') {
+              emit('close', true);
+              return;
+            }
             validateInfo.value = convertData(oprType, (res.data || [])[0]);
             console.log('validateInfo.value', validateInfo.value);
             extraInfo.value = params;
@@ -233,10 +265,8 @@ export default defineComponent({
           // 基础信息
           if (formData) {
             baseList.value.forEach(d => {
-              d.value =
-                (['cwxm', 'zzjs'].includes(d.key)
-                  ? { 0: '否', 1: '是' }[formData[d.key]]
-                  : formData[d.key]) || '';
+              const v = formData[d.key];
+              d.value = v || v === 0 ? v : '';
             });
             judgementText = formData.judgementText;
           }
@@ -248,13 +278,18 @@ export default defineComponent({
               url: d.fileAddress
             }));
           // 审批历史
-          if (suggestions)
-            historyList.value = suggestions.map(d => ({
-              stepTitle: '档案部门验收',
+          if (suggestions) {
+            const tmpFn = d => ({
               operator: d.uName,
               operateDate: d.suggestionTime,
               result: d.suggestionContent
+            });
+            historyList.value = suggestions.map(d => ({
+              stepTitle: d.workNodeName || d.workFlowNode, // '档案部门验收',
+              details: d.suggestionsDetails ? d.suggestionsDetails.map(tmpFn) : null,
+              ...tmpFn(d),
             }));
+          }
         }
       });
     };
@@ -278,6 +313,8 @@ export default defineComponent({
       baseList,
       attachList,
       historyList,
+      suggestionVal,
+      isJointlySign,
       modalVisible,
       validateInfo,
       extraInfo,
@@ -343,6 +380,13 @@ export default defineComponent({
 ::v-deep .van-collapse-item {
   .van-cell {
     font-weight: bold;
+  }
+}
+
+.my-row-history {
+  margin-top: .5em;
+  &:first-child {
+    margin-top: 0;
   }
 }
 </style>

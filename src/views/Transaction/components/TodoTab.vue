@@ -18,6 +18,21 @@
           center
           @click="doPickDate(1)"
         />
+        <!-- <van-cell title="项目名称">
+          <van-field v-model="searchText" clearable />
+        </van-cell> -->
+        <van-field v-model="searchText" label="项目名称" clearable>
+          <template #button>
+            <van-button
+              class="my-btn-search"
+              size="small"
+              type="primary"
+              round
+              @click="fetchData()"
+              >查 询</van-button
+            >
+          </template>
+        </van-field>
       </div>
       <div class="my-search-repl"></div>
     </div>
@@ -51,7 +66,11 @@
       :safe-area-inset-bottom="true"
       :style="{ width: '100%', height: '100%' }"
     >
-      <TodoDetail :data="editingData" :visible="modalVisible" @close="closeDetail" />
+      <TodoDetail
+        :data="editingData"
+        :visible="modalVisible"
+        @close="closeDetail"
+      />
     </van-popup>
   </div>
 </template>
@@ -70,12 +89,16 @@ export default defineComponent({
   name: 'TodoTab',
   components: {
     TodoItem,
-    TodoDetail,
+    TodoDetail
   },
   setup(props, { emit }) {
-    const [minDate, maxDate] = [dayjs().subtract(7, 'day').toDate(), new Date()];
+    const [minDate, maxDate] = [dayjs('2010-01-01').toDate(), new Date()];
     const currentDate = ref<Date | null>(null);
-    const dateRange = ref<Date[]>([minDate, maxDate]);
+    const dateRange = ref<Date[]>([
+      dayjs(maxDate).subtract(7, 'day').toDate(),
+      maxDate
+    ]);
+    const searchText = ref('');
     const formatDate = (v: Date) => dayjs(v).format('YYYY-MM-DD');
 
     const pickerVisible = ref(false);
@@ -83,14 +106,15 @@ export default defineComponent({
     const setLoading = v => store.commit('setLoading', v);
     const fetchData = () => {
       setLoading(true);
-      console.log('-- xhrGetTodoList')
+      console.log('-- xhrGetTodoList');
       const [start, end] = dateRange.value;
       xhrGetTodoList({
         empCode: 10101887,
         pageIndex: 1,
         pageSize: 1000,
         start: formatDate(start),
-        end: formatDate(end)
+        end: formatDate(end),
+        searchText: searchText.value
       })
         .then(res => {
           if (res.flag) {
@@ -104,7 +128,7 @@ export default defineComponent({
     const editingData = ref<any>(null);
     const closeDetail = (reresh = false) => {
       modalVisible.value = false;
-      if (reresh) fetchData()
+      if (reresh) fetchData();
     };
     const enterDetail = item => {
       editingData.value = item;
@@ -116,7 +140,7 @@ export default defineComponent({
       if (el) {
         const index = el.dataset.index;
         const item = items.value[index];
-        enterDetail(item)
+        enterDetail(item);
       }
     };
     let activeIdx = 0;
@@ -139,6 +163,7 @@ export default defineComponent({
       currentDate,
       pickerVisible,
       dateRange,
+      searchText,
       items,
       minDate,
       maxDate,
@@ -148,6 +173,7 @@ export default defineComponent({
       handleClick,
       onPickerConfirm,
       doPickDate,
+      fetchData
     };
   }
 });
@@ -169,8 +195,15 @@ export default defineComponent({
 .my-search-wrap,
 .my-search-repl {
   width: 100%;
-  height: 96px;
+  height: calc(
+    (var(--van-cell-vertical-padding) * 2 + var(--van-cell-line-height)) * 3
+  );
   background: #fff;
   z-index: 9;
+}
+.my-btn-search {
+  margin: -0.3rem 0;
+  position: relative;
+  top: -0.1rem;
 }
 </style>

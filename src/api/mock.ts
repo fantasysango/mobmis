@@ -225,6 +225,7 @@ export default {
       ],
       "suggestions": [
         {
+          "workNodeName": "测试节点1",
           "id": null,
           "rtKey": null,
           "suggestionContent": "2020/11/10 16:06:00",
@@ -234,6 +235,14 @@ export default {
           "uName": "张建军"
         },
         {
+          "workFlowNode": "部门专责验收",
+          "suggestionsDetails": [
+            { "id": null, "rtKey": null, "suggestionContent": "测试一下4", "suggestionTime": "2021-10-26T14:33:00", "isDel": null, "uid": null, "uName": "00000400" },
+            { "id": null, "rtKey": null, "suggestionContent": "测试一下11", "suggestionTime": "2021-10-21T11:22:00", "isDel": null, "uid": null, "uName": "00000999" }
+          ]
+        },
+        {
+          "workNodeName": "测试节点2",
           "id": null,
           "rtKey": null,
           "suggestionContent": "同意",

@@ -35,5 +35,9 @@ export default defineComponent({
   ::v-deep .van-button--round {
     min-width: 6em;
   }
+  ::v-deep input,
+  ::v-deep textarea {
+    font-weight: normal;
+  }
 }
 </style>

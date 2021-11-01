@@ -11,7 +11,7 @@
       </template>
     </van-nav-bar>
     <div class="my-detail-cont">
-      <div class="my-cont-base">
+      <div v-if="Object.keys(nameMap).length" class="my-cont-base">
         <van-row align="center">
           <van-col span="16" class="my-col-pad">{{ approverNames }}</van-col>
           <van-col span="8" @click="toggleModal(true)"
@@ -136,13 +136,29 @@ export default defineComponent({
         note: string;
       }[]
     >([]);
+    const convertToMap = (arr, idKey = 'number', valueKey = 'name') => {
+      const map = {};
+      arr.forEach(d => {
+        map[d[idKey]] = d[valueKey];
+      });
+      return map;
+    };
+    const nameMap = computed(() =>
+      convertToMap([...peopleList.value, ...peopleExtraList.value])
+    );
+    const approverNames = computed(() =>
+      approvers.value.map(d => nameMap.value[d]).join('、')
+    );
+
     const setLoading = v => store.commit('setLoading', v);
     const onCancel = () => {
       emit('close');
     };
     const onConfirm = () => {
       if (!props.data) return $toast('初始数据有误！');
-      if (!approvers.value.length) return $toast('请选择审批对象！');
+      // 审批对象备选列表不为空 但 未选择审批人
+      if (Object.keys(nameMap.value).length && !approvers.value.length)
+        return $toast('请选择审批对象！');
       if (!suggestion.value) return $toast('请输入审批意见！');
       const xhrFn = {
         send: xhrSendValidateInfo,
@@ -172,7 +188,7 @@ export default defineComponent({
             activityID,
             activityName,
             activityCode: nextActCode,
-            peopleList: approvers.value,
+            peopleList: approvers.value
             // stationList: [],
             // departmentList: []
           }
@@ -182,8 +198,8 @@ export default defineComponent({
           cR_CK_ID: +d.answer,
           cR_Opinion: +d.answer ? '' : d.note
         }))
-      }
-      console.log('发送参数 -----', params)
+      };
+      console.log('发送参数 -----', params);
       xhrFn(params)
         .then(res => {
           if (res.flag) {
@@ -197,20 +213,6 @@ export default defineComponent({
       approvers.value = v;
       toggleModal(false);
     };
-    const convertToMap = (arr, idKey = 'number', valueKey = 'name') => {
-      const map = {};
-      arr.forEach(d => {
-        map[d[idKey]] = d[valueKey];
-      });
-      return map;
-    };
-    const nameMap = computed(() =>
-      convertToMap([...peopleList.value, ...peopleExtraList.value])
-    );
-    const approverNames = computed(() =>
-      approvers.value.map(d => nameMap.value[d]).join('、')
-    );
-
     const init = () => {
       const data = props.data || {};
       isMultiPeople.value = data.isJointlySign || false;
@@ -244,6 +246,7 @@ export default defineComponent({
       activeNames,
       approvers,
       approverNames,
+      nameMap,
       suggestion,
       questions,
       modalVisible,
@@ -295,9 +298,5 @@ export default defineComponent({
 
 .my-question-item {
   padding-bottom: 1em;
-}
-
-::v-deep .van-field__body {
-  font-weight: normal;
 }
 </style>
